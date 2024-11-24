@@ -1,0 +1,64 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_IMAGE = 'dataset-display'
+        DOCKER_TAG = 'latest'
+        DATASET_FILE = 'stomach_diseases_dataset.csv'
+    }
+
+    stages {
+        stage('Clone Repository') {
+            steps {
+                // Clone the repository where your files (Dockerfile, dataset, and script) are stored
+                git 'https://github.com/your-repo/your-project.git' // Replace with your repo URL
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    // Build the Docker image
+                    echo "Building Docker image: ${DOCKER_IMAGE}:${DOCKER_TAG}"
+                    sh 'docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} .'
+                }
+            }
+        }
+
+        stage('Run Docker Container') {
+            steps {
+                script {
+                    // Run the Docker container
+                    echo "Running Docker container: ${DOCKER_IMAGE}:${DOCKER_TAG}"
+                    sh 'docker run --name dataset-container -d ${DOCKER_IMAGE}:${DOCKER_TAG}'
+                }
+            }
+        }
+
+        stage('Verify Container Running') {
+            steps {
+                script {
+                    // Verify the Docker container is running
+                    echo "Checking if Docker container is running"
+                    sh 'docker ps -a'
+                }
+            }
+        }
+
+        stage('Cleanup') {
+            steps {
+                script {
+                    // Optionally, clean up the Docker container after the task is complete
+                    echo "Cleaning up Docker container"
+                    sh 'docker rm -f dataset-container'
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo "Pipeline finished"
+        }
+    }
+}
